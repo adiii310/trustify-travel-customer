@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+/* Brand tokens + base element styles (land in Tailwind's base layer, after
+   preflight, so they win over the reset). */
+@import "../styles/tokens.css" layer(base);
+
+/* The design system ported from the Trustify Trips mock. Lives in the
+   components layer so any Tailwind utility can override it inline. */
+@import "../styles/components.css" layer(components);
+@import "../styles/pages.css" layer(components);
+
+/* ------------------------------------------------------------------
+   Tailwind theme — brand palette exposed as utilities.
+   The semantic colors point at the runtime CSS variables from
+   tokens.css, so `bg-card` / `text-ink` follow the active theme.
+   ------------------------------------------------------------------ */
+@theme {
+  --color-navy: #0a1424;
+  --color-green: #1b6b3a;
+  --color-green2: #2e9e4f;
+  --color-gold: #f0a91c;
+  --color-danger: #c0392b;
+
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-mute: var(--mute);
+  --color-line: var(--line);
+
+  --font-sans: "Poppins", "Segoe UI", Arial, sans-serif;
+
+  --radius-card: 10px;
+}
+
+/* `dark:` follows the same resolution order as the tokens:
+   an explicit [data-theme] choice wins, otherwise the OS setting. */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) & {
+      @slot;
+    }
+  }
+  :root[data-theme="dark"] & {
+    @slot;
+  }
+}
