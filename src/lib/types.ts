@@ -19,6 +19,23 @@ export type Destination = {
   c2: string;
   /** Not served by the public API — comes from the static catalogue only. */
   highlights: string[];
+  /** Picked by an admin for the homepage grid. Absent on static catalogue entries. */
+  featured?: boolean;
+  /** Position in that grid, ascending. */
+  featuredRank?: number;
+};
+
+/**
+ * A headline figure in the homepage hero strip, managed from the admin panel.
+ *
+ * `value` is display text (`"450+"`), never a number — the figures are curated
+ * marketing copy and do not track anything the API counts.
+ */
+export type Metric = {
+  id: string;
+  icon: string;
+  value: string;
+  label: string;
 };
 
 export type TrustParameter = {
@@ -55,6 +72,15 @@ export type Company = {
   policies: { label: string; value: string }[];
   /** Created at, epoch ms. Present on API records, absent on static seeds. */
   createdAt?: number;
+  /**
+   * Picked by an admin for the homepage "Top Rated Companies" strip.
+   *
+   * Optional for the same reason as `code`: curation is a live-data concept and
+   * the static catalogue has no opinion on it. Read through `pickFeatured`.
+   */
+  featured?: boolean;
+  /** Position in that strip, ascending. */
+  featuredRank?: number;
 };
 
 export type Package = {

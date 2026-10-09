@@ -5,7 +5,8 @@
  * `@/lib/api` directly, so caching, invalidation and the wire→domain mapping
  * all stay in one place.
  *
- *   Reads        useCompanies, useDestinations, useReviews, useQuestions, useHealth
+ *   Reads        useCompanies, useDestinations, useReviews, useQuestions,
+ *                useMetrics, useHealth
  *   Submissions  useSubmitEnquiry, useRequestCallback, useSubmitApplication,
  *                useAskQuestion, useSubmitReview, useSignIn
  *
@@ -20,6 +21,7 @@ export {
 } from "./useCompanies";
 export { useDestination, useDestinations } from "./useDestinations";
 export { useHealth, useIsApiReachable } from "./useHealth";
+export { useMetrics } from "./useMetrics";
 export { useCompanyQuestions, useQuestions } from "./useQuestions";
 export { isListCapped, useCompanyReviews, useReviews } from "./useReviews";
 export {

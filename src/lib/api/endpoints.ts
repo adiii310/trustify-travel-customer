@@ -12,6 +12,7 @@ import type {
   ApiCompany,
   ApiDestination,
   ApiHealth,
+  ApiMetric,
   ApiQuestion,
   ApiReview,
   ApplicationPayload,
@@ -55,6 +56,12 @@ export const readEndpoints = {
    */
   questions: (companyCode?: string) =>
     get<ApiQuestion[]>("/questions", { c: companyCode }),
+
+  /**
+   * Homepage hero figures, already ordered. Admin-managed, so the count is not
+   * fixed — render whatever arrives and keep a local fallback for an empty list.
+   */
+  metrics: () => get<ApiMetric[]>("/metrics"),
 } as const;
 
 /* ------------------------------------------------------------------ *

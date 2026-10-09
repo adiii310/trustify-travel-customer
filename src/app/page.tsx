@@ -1,13 +1,15 @@
 import Link from "next/link";
 
 import HeroSearch from "@/components/home/HeroSearch";
+import HeroStats from "@/components/home/HeroStats";
 import PopularDestinations from "@/components/home/PopularDestinations";
 import TopCompanies from "@/components/home/TopCompanies";
-import { HERO_STATS, TRUST_BADGES, VERIFY_STEPS } from "@/lib/data/site";
+import { TRUST_BADGES, VERIFY_STEPS } from "@/lib/data/site";
 
 /**
- * Static page shell. The two data-backed grids are client components reading
- * live API lists; everything else here is editorial copy that never changes.
+ * Static page shell. The hero strip, the search box and the two grids are
+ * client components reading live API lists — all four are managed from the
+ * admin panel's Homepage view. Everything else here is editorial copy.
  */
 export default function HomePage() {
   return (
@@ -33,19 +35,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="stats">
-            {HERO_STATS.map((s) => (
-              <div className="stat" key={s.label}>
-                <div className="ic" aria-hidden="true">
-                  {s.icon}
-                </div>
-                <div>
-                  <b>{s.value}</b>
-                  <small>{s.label}</small>
-                </div>
-              </div>
-            ))}
-          </div>
+          <HeroStats />
         </div>
       </header>
 

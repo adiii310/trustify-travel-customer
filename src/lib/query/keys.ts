@@ -34,6 +34,11 @@ export const queryKeys = {
     list: () => [...ROOT, "destinations", "list"] as const,
   },
 
+  metrics: {
+    all: () => [...ROOT, "metrics"] as const,
+    list: () => [...ROOT, "metrics", "list"] as const,
+  },
+
   reviews: {
     all: () => [...ROOT, "reviews"] as const,
     /** @param companyCode Short code (`k`), or undefined for every company. */

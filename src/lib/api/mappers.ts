@@ -25,11 +25,12 @@ import {
 } from "@/lib/data/companies";
 import { getDestination } from "@/lib/data/destinations";
 import { monthYear, slugify } from "@/lib/format";
-import type { Company, Destination, Question, Review } from "@/lib/types";
+import type { Company, Destination, Metric, Question, Review } from "@/lib/types";
 
 import type {
   ApiCompany,
   ApiDestination,
+  ApiMetric,
   ApiQuestion,
   ApiReview,
 } from "./types";
@@ -81,6 +82,11 @@ export function toCompany(dto: ApiCompany): Company {
     tags: dto.tags ?? [],
     createdAt: dto.ts,
 
+    // Homepage curation. Absent on records created before the fields existed,
+    // so both are normalised here rather than at every call site.
+    featured: dto.featured ?? false,
+    featuredRank: dto.featuredRank ?? 0,
+
     // ---- Enrichment: admin-side data the public API does not serve ----
     about: profile?.about ?? fallbackAbout(dto),
     // No company→destination relation exists in the public API, so an unknown
@@ -115,6 +121,9 @@ export function toDestination(dto: ApiDestination): Destination {
     c1: dto.c1,
     c2: dto.c2,
 
+    featured: dto.featured ?? false,
+    featuredRank: dto.featuredRank ?? 0,
+
     // These four are frequently missing from the response entirely (not null),
     // so every read goes through `??` with a catalogue value behind it.
     bestTime: dto.best ?? profile?.bestTime ?? UNKNOWN,
@@ -129,6 +138,26 @@ export function toDestination(dto: ApiDestination): Destination {
 
 export const toDestinations = (dtos: ApiDestination[]): Destination[] =>
   dtos.map(toDestination);
+
+/* ------------------------------------------------------------------ *
+ * Homepage metrics
+ *
+ * No catalogue fallback here: unlike companies and destinations there is no
+ * editorial content to enrich, and the component owns the "API served nothing"
+ * case so it can fall back to its own default copy.
+ * ------------------------------------------------------------------ */
+
+export function toMetric(dto: ApiMetric): Metric {
+  return {
+    id: dto._id,
+    icon: dto.icon,
+    // Display text — never coerced to a number. "450+" is the point.
+    value: dto.value,
+    label: dto.label,
+  };
+}
+
+export const toMetrics = (dtos: ApiMetric[]): Metric[] => dtos.map(toMetric);
 
 /* ------------------------------------------------------------------ *
  * Company-code resolution

@@ -74,6 +74,16 @@ export type ApiCompany = {
   /** Display review count stored on the company — NOT a live count. */
   reviews: number;
   tags: string[];
+  /**
+   * Picked by an admin for the homepage "Top Rated Companies" strip.
+   *
+   * **May be absent**, not `false`: records created before curation existed
+   * have no such key, and the backend reads lists with `.lean()`, which does
+   * not apply schema defaults to stored documents. Always read it with `??`.
+   */
+  featured?: boolean;
+  /** Position in that strip, ascending. Absent on pre-curation records. */
+  featuredRank?: number;
   status: "published";
   /** Created at, epoch milliseconds. */
   ts: number;
@@ -100,6 +110,10 @@ export type ApiDestination = {
   c1: string;
   /** Card gradient end colour. */
   c2: string;
+  /** Picked for the homepage grid. **May be absent** — see `ApiCompany`. */
+  featured?: boolean;
+  /** Position in that grid, ascending. Absent on pre-curation records. */
+  featuredRank?: number;
   status: "published";
   ts: number;
   /** Best season, e.g. `"May - Oct"`. */
@@ -147,6 +161,32 @@ export type ApiQuestion = {
 };
 
 export type ApiQuestionStatus = "open" | "answered";
+
+/**
+ * `GET /metrics` — the admin-managed headline figures in the homepage hero
+ * strip, published only, sorted by `order` ascending.
+ *
+ * Unlike every other public list this one is **not** newest-first: it is a
+ * fixed strip of positional slots, not a feed.
+ */
+export type ApiMetric = {
+  _id: string;
+  /** Emoji. May be an empty string. */
+  icon: string;
+  /**
+   * Display **text**, not a number — `"450+"`, `"50,000+"`.
+   *
+   * Admin-entered and deliberately not a live count of anything. Render it
+   * verbatim; do not parse it or reconcile it against the other endpoints.
+   */
+  value: string;
+  /** e.g. `"Verified Companies"`. */
+  label: string;
+  /** Position, ascending. */
+  order: number;
+  status: "published";
+  ts: number;
+};
 
 /* ------------------------------------------------------------------ *
  * Submission payloads (api.md §5)
