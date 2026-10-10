@@ -1,19 +1,22 @@
 import Link from "next/link";
 
 import CompareButton from "@/components/cards/CompareButton";
-import { startingPrice } from "@/lib/data/packages";
 import { inr, num } from "@/lib/format";
 import type { Company } from "@/lib/types";
 
 type Props = {
   c: Company;
-  /** Scope the headline price to one destination. */
-  destinationId?: string;
+  /**
+   * Cheapest published package for the destination being browsed, when the
+   * caller has one. Falls back to the company's own "from" price, which is a
+   * live figure on the company record — never a computed one.
+   */
+  price?: number;
   best?: boolean;
 };
 
-export default function CompanyRow({ c, destinationId, best }: Props) {
-  const price = startingPrice(c.id, destinationId) || c.fromPrice;
+export default function CompanyRow({ c, price, best }: Props) {
+  const from = price || c.fromPrice;
 
   return (
     <div className="row">
@@ -52,7 +55,7 @@ export default function CompanyRow({ c, destinationId, best }: Props) {
 
       <div>
         Starting from
-        <div className="price">{inr(price)}</div>
+        <div className="price">{inr(from)}</div>
         Per Person
         <Link className="btn g w" href={`/companies/${c.id}`}>
           View Full Report

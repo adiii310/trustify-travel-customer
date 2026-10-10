@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import FormButton from "@/components/ui/FormButton";
 import { isListCapped, useCompanyCode, useCompanyReviews } from "@/hooks/api";
 import { LIST_CAP } from "@/lib/api/config";
-import { averageRating, starBar } from "@/lib/data/reviews";
+import { averageRating, starBar } from "@/lib/reviews";
 import { num, stars } from "@/lib/format";
 
 /**

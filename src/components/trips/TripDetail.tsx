@@ -6,9 +6,13 @@ import { useRouter } from "next/navigation";
 import CompanyRow from "@/components/cards/CompanyRow";
 import FormButton from "@/components/ui/FormButton";
 import WhatsAppButton from "@/components/ui/WhatsAppButton";
-import { companiesForDestination, getCompany } from "@/lib/data/companies";
-import { getDestination } from "@/lib/data/destinations";
-import { getPackage } from "@/lib/data/packages";
+import { CompanyRowSkeleton } from "@/components/ui/Skeleton";
+import {
+  useCompany,
+  useDestination,
+  useDestinationDetail,
+  usePackage,
+} from "@/hooks/api";
 import { addDaysISO, inr, longDate, nightsBetween } from "@/lib/format";
 import { useApp } from "@/hooks/useApp";
 import { useToast } from "@/providers/ToastProvider";
@@ -19,6 +23,12 @@ export default function TripDetail({ tripId }: { tripId: string }) {
   const router = useRouter();
   const toast = useToast();
 
+  // Read before the early returns below — a hook cannot be called conditionally.
+  // `getTrip` reads the local store, so this is not a fetch; the destination
+  // lookup it feeds is disabled until there is a slug to look up.
+  const trip = ready ? getTrip(tripId) : undefined;
+  const { data: destination } = useDestination(trip?.destinationId);
+
   if (!ready) {
     return (
       <div className="wrap page">
@@ -26,8 +36,6 @@ export default function TripDetail({ tripId }: { tripId: string }) {
       </div>
     );
   }
-
-  const trip = getTrip(tripId);
 
   if (!trip) {
     return (
@@ -42,8 +50,6 @@ export default function TripDetail({ tripId }: { tripId: string }) {
       </div>
     );
   }
-
-  const destination = getDestination(trip.destinationId);
 
   const remove = () => {
     removeTrip(trip.id);
@@ -97,8 +103,11 @@ export default function TripDetail({ tripId }: { tripId: string }) {
 /* ------------------------------------------------------------------ */
 
 function BookingDetail({ booking }: { booking: Booking }) {
-  const company = getCompany(booking.companyId);
-  const pkg = getPackage(booking.packageId);
+  // A booking is stored locally and can outlive the records it points at — the
+  // company can be hidden and the package withdrawn after it was saved. Both
+  // are read live and both may legitimately be undefined.
+  const { data: company } = useCompany(booking.companyId);
+  const { data: pkg } = usePackage(booking.packageId);
   const endDate = pkg
     ? addDaysISO(booking.startDate, pkg.nights)
     : booking.startDate;
@@ -249,11 +258,15 @@ function PlanDetail({
   plan: TripPlan;
   onStatus: (status: TripPlan["status"]) => void;
 }) {
-  const destination = getDestination(plan.destinationId);
+  const { data: destination } = useDestination(plan.destinationId);
   const nights = nightsBetween(plan.startDate, plan.endDate);
-  const suggestions = companiesForDestination(plan.destinationId)
-    .sort((a, b) => b.trustScore - a.trustScore)
-    .slice(0, 3);
+
+  // Companies covering this destination, from the live join — the API already
+  // sorts them by trust score.
+  const { data: detail, isPending: suggestionsPending } = useDestinationDetail(
+    plan.destinationId
+  );
+  const suggestions = (detail?.companies ?? []).slice(0, 3);
 
   return (
     <div className="book-lay">
@@ -333,10 +346,13 @@ function PlanDetail({
 
         <div className="box">
           <h3>Verified companies for this route</h3>
-          {suggestions.length ? (
-            suggestions.map((c) => (
-              <CompanyRow key={c.id} c={c} destinationId={plan.destinationId} />
-            ))
+          {suggestionsPending ? (
+            <>
+              <CompanyRowSkeleton />
+              <CompanyRowSkeleton />
+            </>
+          ) : suggestions.length ? (
+            suggestions.map((c) => <CompanyRow key={c.id} c={c} />)
           ) : (
             <p className="mute">
               No verified company covers this destination yet.

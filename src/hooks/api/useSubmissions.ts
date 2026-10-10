@@ -145,8 +145,10 @@ export function useSubmitReview() {
  * way to tell a new traveller from a returning one, and nothing in the public
  * API is personalised.
  *
- * On success the traveller is recorded in the account store purely so forms can
- * be prefilled. `phone` is kept locally only — the endpoint does not accept it.
+ * **Superseded by `useRegister` / `useLogin` for signing in.** This endpoint
+ * and its behaviour are unchanged and still documented, but it issues no token,
+ * so the account it records cannot read bookings — `useIsSignedIn` keys off the
+ * token, not off this. It survives as prefill capture for the public forms.
  */
 export function useSignIn() {
   const setAccount = useAccountStore((s) => s.setAccount);
@@ -154,15 +156,13 @@ export function useSignIn() {
   return useMutation<MemberResult, ApiError, MemberPayload & { phone?: string }>({
     mutationFn: ({ name, email }) => writeEndpoints.signIn({ name, email }),
     onSuccess: (result, variables) => {
-      setAccount(
-        {
-          // The server lower-cases and trims the email, so prefer its copy.
-          name: result.name,
-          email: result.email,
-          phone: variables.phone || undefined,
-        },
-        result._id
-      );
+      setAccount({
+        id: result._id,
+        // The server lower-cases and trims the email, so prefer its copy.
+        name: result.name,
+        email: result.email,
+        phone: variables.phone || undefined,
+      });
     },
   });
 }

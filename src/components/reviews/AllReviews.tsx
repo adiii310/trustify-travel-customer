@@ -6,7 +6,7 @@ import { useState } from "react";
 import FormButton from "@/components/ui/FormButton";
 import { isListCapped, useCompanies, useReviews } from "@/hooks/api";
 import { LIST_CAP } from "@/lib/api/config";
-import { averageRating } from "@/lib/data/reviews";
+import { averageRating } from "@/lib/reviews";
 import { stars } from "@/lib/format";
 
 /**

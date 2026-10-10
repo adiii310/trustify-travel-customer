@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { addDaysISO, inr, longDate, newId, todayISO } from "@/lib/format";
-import { useApp } from "@/hooks/useApp";
-import { useToast } from "@/providers/ToastProvider";
-import type { Booking, Company, Destination, Package } from "@/lib/types";
+import { addDaysISO, inr, longDate, todayISO } from "@/lib/format";
+import { useRequestBooking } from "@/hooks/api";
+import { isApiError } from "@/lib/api/errors";
+import { useAccountStore } from "@/store/accountStore";
+import type { Company, Destination, Package } from "@/lib/types";
 
-const STEPS = ["Trip details", "Your details", "Review & confirm"];
+const STEPS = ["Trip details", "Your details", "Review & request"];
 
 type Props = {
   pkg: Package;
@@ -19,8 +20,10 @@ type Props = {
 
 export default function BookingFlow({ pkg, company, destination }: Props) {
   const router = useRouter();
-  const toast = useToast();
-  const { account, addTrip } = useApp();
+  const account = useAccountStore((s) => s.account);
+  const request = useRequestBooking();
+  const [submitError, setSubmitError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const [step, setStep] = useState(0);
   const [error, setError] = useState("");
@@ -61,31 +64,32 @@ export default function BookingFlow({ pkg, company, destination }: Props) {
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
   };
 
-  const confirm = () => {
-    const booking: Booking = {
-      id: newId("bk"),
-      kind: "booking",
-      companyId: company.id,
-      packageId: pkg.id,
-      destinationId: destination.id,
-      title: pkg.title,
-      startDate: form.startDate,
-      travellers: form.travellers,
-      pricePerPerson: pkg.price,
-      total,
-      contact: {
-        name: form.name.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim(),
-      },
-      notes: form.notes.trim() || undefined,
-      status: "confirmed",
-      createdAt: Date.now(),
-    };
+  /**
+   * Submit the request.
+   *
+   * This creates a **pending** request, not a booking: no payment is taken and
+   * nothing is reserved. The server prices it from the package, so the total
+   * shown here is a quote and anything sent in its place would be ignored.
+   */
+  const confirm = async () => {
+    setSubmitError("");
+    setFieldErrors({});
 
-    addTrip(booking);
-    toast("Booking confirmed. Find it under My Trips.");
-    router.push(`/trips/${booking.id}`);
+    try {
+      const booking = await request.mutateAsync({
+        pkg: pkg.id,
+        pax: form.travellers,
+        startDate: form.startDate,
+        msg: form.notes.trim(),
+        phone: form.phone.trim(),
+      });
+      router.push(`/account/bookings/${booking.id}?new=1`);
+    } catch (cause) {
+      setSubmitError(
+        cause instanceof Error ? cause.message : "Could not send your request."
+      );
+      if (isApiError(cause)) setFieldErrors(cause.fieldErrorMap);
+    }
   };
 
   return (
@@ -190,7 +194,7 @@ export default function BookingFlow({ pkg, company, destination }: Props) {
 
         {step === 2 && (
           <div className="box">
-            <h3>Review your booking</h3>
+            <h3>Review your request</h3>
             <div className="kv">
               Package<b>{pkg.title}</b>
             </div>
@@ -221,15 +225,25 @@ export default function BookingFlow({ pkg, company, destination }: Props) {
                 Notes<b>{form.notes}</b>
               </div>
             )}
+            {/* Said plainly, and said before the button rather than after it:
+                a request is not a booking, and the figure above is a quote. */}
             <p className="mute mt-3">
-              Confirming reserves your slot. {company.name} will call to collect
-              the {inr(dueNow)} deposit and share the final voucher. Free
-              cancellation up to 15 days before departure.
+              <b>This is a request, not a confirmed booking.</b> Nothing is
+              reserved and no payment is taken here. Our team will contact you
+              on {form.phone || "the number above"} to confirm availability and
+              explain how to pay — typically {inr(dueNow)} up front, agreed with
+              you first.
             </p>
           </div>
         )}
 
         {error && <div className="ferr">{error}</div>}
+        {submitError && <div className="ferr">{submitError}</div>}
+        {Object.entries(fieldErrors).map(([field, message]) => (
+          <div className="ferr" key={field}>
+            {field}: {message}
+          </div>
+        ))}
 
         <div className="flex flex-wrap gap-2.5">
           {step > 0 && (
@@ -242,8 +256,12 @@ export default function BookingFlow({ pkg, company, destination }: Props) {
               Continue →
             </button>
           ) : (
-            <button className="btn g" onClick={confirm}>
-              Confirm booking
+            <button
+              className="btn g"
+              onClick={() => void confirm()}
+              disabled={request.isPending}
+            >
+              {request.isPending ? "Sending…" : "Send booking request"}
             </button>
           )}
         </div>

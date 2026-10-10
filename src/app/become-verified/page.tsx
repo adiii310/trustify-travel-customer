@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import FormButton from "@/components/ui/FormButton";
 import WhatsAppButton from "@/components/ui/WhatsAppButton";
-import { VERIFY_STEPS } from "@/lib/data/site";
+import VerifySteps from "@/components/home/VerifySteps";
 
 export const metadata: Metadata = {
   title: "Become a Verified Company",
@@ -25,14 +25,7 @@ export default function BecomeVerifiedPage() {
 
       <div className="box">
         <h3>What the process looks like</h3>
-        {VERIFY_STEPS.map((s, i) => (
-          <div className="kv" key={s.title}>
-            <b>
-              {i + 1}. {s.title}
-            </b>
-            <span>{s.detail}</span>
-          </div>
-        ))}
+        <VerifySteps variant="list" />
       </div>
 
       <div className="box">

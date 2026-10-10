@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { RESOURCES } from "@/lib/data/site";
+import ResourceList from "@/components/resources/ResourceList";
 
 export const metadata: Metadata = {
   title: "Travel Resources",
@@ -9,6 +9,7 @@ export const metadata: Metadata = {
     "Checklists and guides for picking a trustworthy travel company and planning a safe trip.",
 };
 
+/** Server shell; the guides themselves are admin-managed and read live. */
 export default function ResourcesPage() {
   return (
     <div className="wrap page max-w-[820px]">
@@ -21,12 +22,7 @@ export default function ResourcesPage() {
         checks.
       </p>
 
-      {RESOURCES.map((r) => (
-        <details key={r.q}>
-          <summary>{r.q}</summary>
-          <p>{r.a}</p>
-        </details>
-      ))}
+      <ResourceList />
     </div>
   );
 }

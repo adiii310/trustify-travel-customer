@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { useCompanies, useCompany } from "@/hooks/api";
-import { destinationName } from "@/lib/data/destinations";
+import { useDestinations } from "@/hooks/api";
 import { inr, longDate } from "@/lib/format";
 import { useApp } from "@/hooks/useApp";
 import type { Trip } from "@/lib/types";
@@ -19,6 +19,7 @@ export default function TripsDashboard() {
   // a renamed company is not shown under its old name.
   const { data: companies } = useCompanies();
   const getCompany = (id: string) => companies?.find((c) => c.id === id);
+
 
   if (!ready) return <div className="empty">Loading your trips…</div>;
 
@@ -106,6 +107,14 @@ function TripCard({ trip }: { trip: Trip }) {
   const isBooking = trip.kind === "booking";
   // Reads the same cached company list as the dashboard above — no extra fetch.
   const { data: company } = useCompany(isBooking ? trip.companyId : undefined);
+  const { data: destinations } = useDestinations();
+
+  // The slug is shown until the list loads, and kept if the destination has
+  // since been removed — it is at least the value the trip was really saved
+  // against.
+  const destinationName =
+    destinations?.find((d) => d.id === trip.destinationId)?.name ??
+    trip.destinationId;
 
   return (
     <div className="trip-card">
@@ -116,7 +125,7 @@ function TripCard({ trip }: { trip: Trip }) {
 
       <h3>{trip.title}</h3>
 
-      <span>📍 {destinationName(trip.destinationId)}</span>
+      <span>📍 {destinationName}</span>
       <span>
         🗓{" "}
         {isBooking

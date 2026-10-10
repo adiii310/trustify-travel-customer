@@ -1,85 +1,28 @@
-export const SITE = {
-  name: "Trustify Trips",
-  tagline: "TRAVEL. VERIFIED.",
-  whatsapp: "919999999999",
-  whatsappMessage: "Hi Trustify Trips, I need help choosing a travel company.",
-};
+/**
+ * What is left in this file is **not** content.
+ *
+ * Site identity, the homepage badges, the verification steps, the resources
+ * FAQ and the planner's interest chips all moved into the API and are edited
+ * in the admin panel — nothing the customer site shows is hard-coded here any
+ * more. These two are filter *mechanics*: numeric buckets the UI groups
+ * results into, whose labels are descriptions of the numbers beside them.
+ */
 
+/**
+ * The site's own routes. Code, not content: every entry has to correspond to a
+ * page that exists, so an admin cannot usefully edit this without also shipping
+ * the page behind it.
+ */
 export const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/destinations", label: "Destinations" },
   { href: "/companies", label: "Verified Companies" },
   { href: "/compare", label: "Compare" },
   { href: "/trips", label: "My Trips" },
+  { href: "/account/bookings", label: "My Bookings" },
   { href: "/reviews", label: "Reviews" },
   { href: "/resources", label: "Resources" },
   { href: "/about", label: "About" },
-];
-
-export const HERO_STATS = [
-  { icon: "🏢", value: "450+", label: "Verified Companies" },
-  { icon: "📍", value: "90+", label: "Destinations" },
-  { icon: "💬", value: "50,000+", label: "Verified Reviews" },
-  { icon: "🛡️", value: "9", label: "Trust Parameters" },
-];
-
-export const TRUST_BADGES = [
-  { icon: "✔", label: "Verified & Tested" },
-  { icon: "👤", label: "Background Checked" },
-  { icon: "📄", label: "Transparent Pricing" },
-  { icon: "⚙", label: "Service Tested" },
-  { icon: "🎧", label: "Best Customer Support" },
-];
-
-export const VERIFY_STEPS = [
-  { icon: "📝", title: "Application", detail: "The company applies with its basic details." },
-  { icon: "🪪", title: "Document Verification", detail: "GST, registration and tourism licences are checked." },
-  { icon: "🔍", title: "Background Check", detail: "Owners, history and complaints are reviewed." },
-  { icon: "📦", title: "Package Analysis", detail: "Itineraries and pricing are checked for transparency." },
-  { icon: "🕵️", title: "Mystery Booking", detail: "Our team books and experiences a real trip." },
-  { icon: "💬", title: "Customer Feedback", detail: "Traveller reviews are verified and analysed." },
-  { icon: "✅", title: "Final Inspection", detail: "A final review of service quality and safety." },
-  { icon: "🏅", title: "Trust Score", detail: "A score out of 100 is published and re-evaluated regularly." },
-];
-
-export const RESOURCES = [
-  {
-    q: "How to choose a trustworthy travel company",
-    a: "Check that the company shows a verified registration, a real office address and a clear cancellation policy. Compare itineraries line by line, not just the headline price.",
-  },
-  {
-    q: "Kedarnath yatra checklist",
-    a: "Carry a rain jacket, warm layers, a valid photo ID, your yatra registration and any regular medicines. Book stays before the peak season from May to June.",
-  },
-  {
-    q: "How the Trust Score works",
-    a: "Each company is scored out of 100 across 9 parameters, including itinerary quality, safety, transparency and support, after documents, mystery bookings and customer feedback are checked.",
-  },
-  {
-    q: "Spotting hidden charges",
-    a: "Ask what is not included: entry fees, permits, heater or oxygen charges, and pony or helicopter costs. A trustworthy company lists inclusions and exclusions in writing.",
-  },
-  {
-    q: "Best time to visit popular destinations",
-    a: "Kedarnath and Spiti are best from May to October, Leh Ladakh from June to September, Kerala from September to March and Bali from April to October.",
-  },
-  {
-    q: "Travel safety basics",
-    a: "Share your itinerary with family, keep digital copies of documents, buy travel insurance and confirm the operator's emergency contact before you leave.",
-  },
-];
-
-export const INTERESTS = [
-  "Pilgrimage",
-  "Trekking",
-  "Photography",
-  "Food",
-  "Wildlife",
-  "Beaches",
-  "Heritage",
-  "Adventure sports",
-  "Offbeat stays",
-  "Shopping",
 ];
 
 export const BUDGET_RANGES = [

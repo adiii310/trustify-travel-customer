@@ -56,7 +56,9 @@ component → hooks/api → lib/api/endpoints → lib/api/client → fetch
 
 ### Why a static catalogue still exists
 
-`src/lib/data/` is not legacy fixture data. The public API does not serve packages/itineraries, the 9-parameter trust-score breakdown, company "about" copy, documents, policies, company↔destination relations, or destination highlights. Mappers fall back to it; do not delete it when wiring an endpoint.
+`src/lib/data/` is not legacy fixture data. The public API does not serve packages/itineraries, the 9-parameter trust-score breakdown, company "about" copy, documents, policies, or destination highlights. Mappers fall back to it; do not delete it when wiring an endpoint.
+
+The company↔destination relation **used** to be catalogue-only and is now live, as `ApiCompany.places`. It still follows the house rule rather than replacing the fallback: `toCompany` reads `dto.places` first and keeps the catalogue's list when the admin has not curated one, so a company nobody has edited yet does not lose its destinations.
 
 ### Forms and submissions
 
@@ -70,7 +72,9 @@ Pages are server components by default; only filters, tabs, the booking wizard, 
 
 Values shared between a server page and a client component must live in a non-`"use client"` module (see `src/lib/tabs.ts`) — a server component importing a value from a client module gets a reference proxy, not the value.
 
-The API has no by-id, search, filter or sort beyond `?c=`, which is why directory pages are client components reading `?q=` / `?sort=` from the URL. Company tabs are a `?tab=` search param so every tab is linkable and server-rendered.
+The API has one by-key read — `GET /destinations/:slug` — and no search, filter or sort beyond `?c=`, which is why directory pages are client components reading `?q=` / `?sort=` from the URL. Company tabs are a `?tab=` search param so every tab is linkable and server-rendered.
+
+`/destinations/[slug]` is the one detail page that is live: the server component does metadata and `generateStaticParams` from the static catalogue (the API is often unreachable during `next build`), and `DestinationDetail` reads `useDestinationDetail(slug)` in the browser. It has to, because the companies listed there come from the admin-managed `places` relation, which the client cannot reconstruct from the list endpoints. A 404 from that endpoint is the expected "hidden or unknown" case and renders as a not-found panel — distinct from an empty `companies` array, which is a normal result meaning nobody covers the destination yet.
 
 ### Styling
 
@@ -84,5 +88,7 @@ Theme is `light` / `dark` / `system` (default), resolved from `[data-theme]` on 
 - Bookings and trip plans (`/book/*`, `/trips/*`) are **local only** — there is no booking endpoint and no "my trips" read. They live in `tripsStore`, and the UI must never present a trip as confirmed by the company.
 - `/reviews` and `/questions` are capped at 500 server-side with no paging and no total. List views must say so when they hit `LIST_CAP` rather than implying completeness.
 - All six POST endpoints share one budget of 20 per IP per 10 minutes.
+- **A destination's cover image is optional and layers *over* its gradient**, never instead of it (`DestinationCard`, and the hero in `DestinationDetail`). `coverImage` is `""` for most records and absent on every static catalogue entry, so a destination without one must still look finished — and a slow or broken image must never leave a blank tile.
+- **`destination.companies` (the count shown in the directory) is `n`, an admin-entered figure.** The "Verified Companies" number on a detail page is the length of what the API actually returned. They are different things and are not reconciled.
 
 `Trustify Trips – Travel. Verified.html` at the repo root is the original design mock the app was ported from, kept for reference and excluded from lint.

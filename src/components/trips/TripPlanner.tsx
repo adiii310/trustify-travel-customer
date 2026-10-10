@@ -3,14 +3,17 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import { companiesForDestination } from "@/lib/data/companies";
-import { destinations, getDestination } from "@/lib/data/destinations";
-import { INTERESTS } from "@/lib/data/site";
-import { startingPrice } from "@/lib/data/packages";
+import { Skeleton } from "@/components/ui/Skeleton";
+import {
+  useDestinationDetail,
+  useDestinations,
+  usePackages,
+  useSiteContent,
+} from "@/hooks/api";
 import { addDaysISO, inr, newId, nightsBetween, todayISO } from "@/lib/format";
 import { useApp } from "@/hooks/useApp";
 import { useToast } from "@/providers/ToastProvider";
-import type { TripPlan } from "@/lib/types";
+import { companyCode, type TripPlan } from "@/lib/types";
 
 export default function TripPlanner() {
   const router = useRouter();
@@ -18,8 +21,14 @@ export default function TripPlanner() {
   const { addTrip, account } = useApp();
   const params = useSearchParams();
 
+  const { data: destinations, isPending: destinationsPending } = useDestinations();
+  const { data: content } = useSiteContent();
+
   const [form, setForm] = useState({
-    destinationId: params.get("destination") ?? destinations[0].id,
+    // Empty until a destination is picked: there is no list to default into
+    // before the API answers, and defaulting to a guess would quietly file the
+    // plan against the wrong place.
+    destinationId: params.get("destination") ?? "",
     title: "",
     startDate: addDaysISO(todayISO(), 21),
     endDate: addDaysISO(todayISO(), 25),
@@ -33,17 +42,34 @@ export default function TripPlanner() {
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
 
-  const destination = getDestination(form.destinationId);
+  const destination = (destinations ?? []).find((d) => d.id === form.destinationId);
   const nights = nightsBetween(form.startDate, form.endDate);
 
+  // The companies covering the chosen destination, and what they actually
+  // charge for it — both live. The shortlist is empty until one is picked.
+  const { data: detail } = useDestinationDetail(form.destinationId || undefined);
+  const { data: packages } = usePackages({
+    destinationSlug: form.destinationId || undefined,
+    enabled: Boolean(form.destinationId),
+  });
+
   const matches = useMemo(() => {
-    const pool = companiesForDestination(form.destinationId);
-    return pool
-      .map((c) => ({ company: c, price: startingPrice(c.id, form.destinationId) }))
+    const cheapestFor = new Map<string, number>();
+    // The server sorts cheapest first, so the first price seen per company wins.
+    for (const p of packages ?? []) {
+      const key = p.companyCode.toUpperCase();
+      if (!cheapestFor.has(key)) cheapestFor.set(key, p.price);
+    }
+
+    return (detail?.companies ?? [])
+      .map((c) => ({
+        company: c,
+        price: cheapestFor.get(companyCode(c).toUpperCase()) ?? c.fromPrice,
+      }))
       .filter((m) => !form.budgetPerPerson || m.price <= form.budgetPerPerson * 1.15)
       .sort((a, b) => b.company.trustScore - a.company.trustScore)
       .slice(0, 3);
-  }, [form.destinationId, form.budgetPerPerson]);
+  }, [detail, packages, form.budgetPerPerson]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,7 +127,10 @@ export default function TripPlanner() {
               value={form.destinationId}
               onChange={(e) => set("destinationId", e.target.value)}
             >
-              {destinations.map((d) => (
+              <option value="">
+                {destinationsPending ? "Loading destinations…" : "Choose a destination"}
+              </option>
+              {(destinations ?? []).map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.name} — {d.region}
                 </option>
@@ -168,22 +197,26 @@ export default function TripPlanner() {
             We use this to shortlist companies and suggest a day plan.
           </p>
           <div className="interests">
-            {INTERESTS.map((i) => (
-              <button
-                type="button"
-                key={i}
-                className={`chipb${interests.includes(i) ? " on" : ""}`}
-                onClick={() =>
-                  setInterests((prev) =>
-                    prev.includes(i)
-                      ? prev.filter((x) => x !== i)
-                      : [...prev, i]
-                  )
-                }
-              >
-                {i}
-              </button>
-            ))}
+            {content
+              ? content.interests.map(({ id, title }) => (
+                  <button
+                    type="button"
+                    key={id}
+                    className={`chipb${interests.includes(title) ? " on" : ""}`}
+                    onClick={() =>
+                      setInterests((prev) =>
+                        prev.includes(title)
+                          ? prev.filter((x) => x !== title)
+                          : [...prev, title]
+                      )
+                    }
+                  >
+                    {title}
+                  </button>
+                ))
+              : Array.from({ length: 8 }, (_, i) => (
+                  <Skeleton key={i} w={88} h={30} rounded={999} />
+                ))}
           </div>
 
           <label className="fl mt-3">
