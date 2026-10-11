@@ -12,24 +12,22 @@ import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 
 import { readEndpoints } from "@/lib/api/endpoints";
 import { toCompanies } from "@/lib/api/mappers";
-import { companies as staticCompanies } from "@/lib/data/companies";
 import { queryKeys } from "@/lib/query/keys";
 import { companyCode, type Company } from "@/lib/types";
 
 /**
  * All published companies, ranked by trust score (the server already sorts).
  *
- * The static catalogue is supplied as `placeholderData`, so the directory
- * renders instantly with plausible content and swaps to live figures the
- * moment the request lands. It is a *placeholder*, not `initialData`: it never
- * enters the cache, so a failed request is still reported as an error rather
- * than masquerading as a successful fetch of stale seeds.
+ * There is deliberately **no `placeholderData`**. Seeding this with sample
+ * companies made the directory render instantly with plausible names and
+ * scores that then silently changed into different ones — a visitor cannot
+ * tell a placeholder from an answer. Callers read `isPending` and show a
+ * skeleton instead.
  */
 export function useCompanies(): UseQueryResult<Company[], Error> {
   return useQuery({
     queryKey: queryKeys.companies.list(),
     queryFn: async () => toCompanies(await readEndpoints.companies()),
-    placeholderData: staticCompanies,
   });
 }
 

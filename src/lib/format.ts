@@ -47,3 +47,24 @@ export const addDaysISO = (iso: string, days: number) => {
 /** Short, readable, collision-resistant enough for local records. */
 export const newId = (prefix: string) =>
   `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+
+/** Join conditional class names, dropping anything falsy. */
+export const cx = (...parts: (string | false | null | undefined)[]) =>
+  parts.filter(Boolean).join(" ");
+
+/**
+ * Turn a hosted file URL into one that downloads rather than displays.
+ *
+ * Uploaded files live on Cloudinary, whose `fl_attachment` delivery flag goes
+ * in the transformation segment right after `/upload/`. The alternative — a
+ * plain `<a download>` — is ignored by every browser for a cross-origin href,
+ * so the flag is the only thing that actually makes "Download" download.
+ *
+ * Anything that is not a Cloudinary delivery URL (an admin may paste any
+ * https address) is returned untouched rather than mangled.
+ */
+export const attachmentUrl = (url: string): string => {
+  if (!url.includes("/upload/")) return url;
+  if (url.includes("/upload/fl_attachment")) return url;
+  return url.replace("/upload/", "/upload/fl_attachment/");
+};

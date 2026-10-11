@@ -581,3 +581,189 @@ footer.site .fbot {
     font-size: 13px;
   }
 }
+
+/* ---- Loading skeletons ---- */
+/* The site ships no placeholder content any more, so every list and panel
+   renders one of these while its request is in flight. Deliberately featureless:
+   a shape that reads as "not loaded yet", never as a value. */
+.sk {
+  display: inline-block;
+  background: linear-gradient(
+    90deg,
+    var(--line) 25%,
+    color-mix(in srgb, var(--line) 45%, transparent) 37%,
+    var(--line) 63%
+  );
+  background-size: 400% 100%;
+  animation: sk-shimmer 1.4s ease infinite;
+}
+
+@keyframes sk-shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+/* Respect a reduced-motion preference: keep the shape, drop the sweep. */
+@media (prefers-reduced-motion: reduce) {
+  .sk { animation: none; }
+}
+
+/* ---- Company photo gallery ---- */
+/* Admin-uploaded images of unknown aspect ratio, so every tile crops to a
+   fixed box rather than letting one tall photo stretch the row. */
+.gal {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.gal img {
+  display: block;
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  background: var(--line);
+}
+
+/* ---- Package cards ---- */
+/* Used by the destination listing. The grid is auto-fill so one package and
+   twelve both lay out sensibly, on a phone and on a desktop. */
+.pkgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.pkc {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.pkc-cover {
+  position: relative;
+  height: 132px;
+  background-size: cover;
+  background-position: center;
+}
+
+.pkc-dur,
+.pkc-avail {
+  position: absolute;
+  bottom: 10px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  border-radius: 999px;
+  background: rgba(5, 12, 28, 0.78);
+}
+
+.pkc-dur {
+  left: 10px;
+}
+
+.pkc-avail {
+  right: 10px;
+  background: rgba(20, 95, 70, 0.9);
+}
+
+/* Sold out is still published and still comparable — the card is complete,
+   only the tone changes. */
+.pkc-avail.out {
+  background: rgba(90, 30, 30, 0.9);
+}
+
+.pkc-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  padding: 13px 14px 14px;
+}
+
+.pkc-body h3 {
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.pkc-body h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.pkc-body h3 a:hover {
+  color: var(--green);
+}
+
+.pkc-meta {
+  font-size: 12px;
+  color: var(--mute);
+}
+
+.pkc-desc {
+  font-size: 12.5px;
+  color: var(--mute);
+}
+
+.pkc-foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+/* ---- Package detail ---- */
+.pkday {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.pkday b {
+  font-size: 12px;
+  color: var(--green);
+}
+
+.pkday span {
+  font-size: 13px;
+  color: var(--mute);
+}
+
+/* ---- Booking status chips ---- */
+/* Three tones, because a traveller only needs to know: done, in progress, or
+   not happening. The admin panel's seven statuses map onto these. */
+.bpill {
+  display: inline-block;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.bpill.ok {
+  background: color-mix(in srgb, var(--green2) 16%, transparent);
+  color: var(--green2);
+  border-color: color-mix(in srgb, var(--green2) 35%, transparent);
+}
+
+.bpill.wait {
+  background: color-mix(in srgb, var(--gold) 18%, transparent);
+  color: var(--gold);
+  border-color: color-mix(in srgb, var(--gold) 38%, transparent);
+}
+
+.bpill.off {
+  background: color-mix(in srgb, var(--mute) 16%, transparent);
+  color: var(--mute);
+  border-color: var(--line);
+}

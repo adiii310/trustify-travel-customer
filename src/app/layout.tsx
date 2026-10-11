@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 
 import SiteFooter from "@/components/SiteFooter";
 import SiteNav from "@/components/SiteNav";
-import { SITE } from "@/lib/data/site";
+import { BRAND } from "@/lib/brand";
 import { DialogProvider } from "@/providers/DialogProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider, themeInitScript } from "@/providers/ThemeProvider";
@@ -12,8 +12,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: `${SITE.name} – Travel. Verified.`,
-    template: `%s · ${SITE.name}`,
+    default: `${BRAND} – Travel. Verified.`,
+    template: `%s · ${BRAND}`,
   },
   description:
     "Find India's most trusted travel companies. Every company is independently reviewed, verified and ranked across 9 trust parameters before we recommend it.",

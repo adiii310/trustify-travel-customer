@@ -1,13 +1,16 @@
 import Link from "next/link";
 
 import HeroSearch from "@/components/home/HeroSearch";
+import HeroStats from "@/components/home/HeroStats";
 import PopularDestinations from "@/components/home/PopularDestinations";
 import TopCompanies from "@/components/home/TopCompanies";
-import { HERO_STATS, TRUST_BADGES, VERIFY_STEPS } from "@/lib/data/site";
+import TrustBadges from "@/components/home/TrustBadges";
+import VerifySteps from "@/components/home/VerifySteps";
 
 /**
- * Static page shell. The two data-backed grids are client components reading
- * live API lists; everything else here is editorial copy that never changes.
+ * Page shell. Every block below is a client component reading a live API list
+ * and managed from the admin panel; nothing on this page is hard-coded except
+ * the headline and the section titles around them.
  */
 export default function HomePage() {
   return (
@@ -33,31 +36,12 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="stats">
-            {HERO_STATS.map((s) => (
-              <div className="stat" key={s.label}>
-                <div className="ic" aria-hidden="true">
-                  {s.icon}
-                </div>
-                <div>
-                  <b>{s.value}</b>
-                  <small>{s.label}</small>
-                </div>
-              </div>
-            ))}
-          </div>
+          <HeroStats />
         </div>
       </header>
 
       <div className="wrap">
-        <div className="badges">
-          {TRUST_BADGES.map((b) => (
-            <span key={b.label}>
-              <i aria-hidden="true">{b.icon}</i>
-              {b.label}
-            </span>
-          ))}
-        </div>
+        <TrustBadges />
       </div>
 
       <div className="wrap">
@@ -81,14 +65,7 @@ export default function HomePage() {
                 Know Our Process
               </Link>
             </div>
-            <div className="steps">
-              {VERIFY_STEPS.map((s) => (
-                <div className="step" key={s.title}>
-                  <i aria-hidden="true">{s.icon}</i>
-                  {s.title}
-                </div>
-              ))}
-            </div>
+            <VerifySteps />
           </div>
         </section>
 

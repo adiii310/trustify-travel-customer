@@ -19,7 +19,26 @@ import {
 import { ApiError } from "./errors";
 import type { ApiEnvelope, ApiFieldError, RateLimitSnapshot } from "./types";
 
-type HttpMethod = "GET" | "POST";
+type HttpMethod = "GET" | "POST" | "PATCH";
+
+/* ------------------------------------------------------------------ *
+ * The customer bearer token
+ *
+ * Held here rather than read from the Zustand store, for the same reason the
+ * rate-limit snapshots are broadcast rather than written: this module must stay
+ * importable from a server component, and importing the store would drag React
+ * into it. `accountStore` pushes the token in on hydration and on every
+ * sign-in; nothing else touches it.
+ * ------------------------------------------------------------------ */
+
+let authToken = "";
+
+/** Set or clear the token every authenticated request will carry. */
+export function setAuthToken(token: string): void {
+  authToken = token || "";
+}
+
+export const getAuthToken = (): string => authToken;
 
 /* ------------------------------------------------------------------ *
  * Rate-limit broadcasting
@@ -70,7 +89,8 @@ function readRateLimit(headers: Headers): RateLimitSnapshot | null {
 export async function request<TData>(
   method: HttpMethod,
   path: string,
-  body?: unknown
+  body?: unknown,
+  { auth = false }: { auth?: boolean } = {}
 ): Promise<TData> {
   const url = `${API_BASE_URL}${path}`;
 
@@ -101,7 +121,12 @@ export async function request<TData>(
       // Only send a content type when there is a body, matching the reference
       // client in api.md. These endpoints use no cookies, so credentials are
       // deliberately left at the default ("same-origin") — never "include".
-      headers: serialised ? { "Content-Type": "application/json" } : undefined,
+      headers: {
+        ...(serialised ? { "Content-Type": "application/json" } : {}),
+        // Only on the endpoints that need it, so a public read never leaks a
+        // token to a cache or a log.
+        ...(auth && authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
       body: serialised,
       signal,
     });
@@ -149,20 +174,46 @@ export async function request<TData>(
   return envelope.data;
 }
 
-/** `GET` helper with optional query parameters; `undefined` values are dropped. */
-export function get<TData>(
+/** Build a query string, dropping `undefined` and empty values. */
+const withQuery = (
   path: string,
   params?: Record<string, string | number | undefined>
-): Promise<TData> {
+) => {
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(params ?? {})) {
     if (value !== undefined && value !== "") search.set(key, String(value));
   }
   const query = search.toString();
-  return request<TData>("GET", query ? `${path}?${query}` : path);
+  return query ? `${path}?${query}` : path;
+};
+
+/** `GET` helper with optional query parameters; `undefined` values are dropped. */
+export function get<TData>(
+  path: string,
+  params?: Record<string, string | number | undefined>
+): Promise<TData> {
+  return request<TData>("GET", withQuery(path, params));
 }
 
 /** `POST` helper. */
 export function post<TData>(path: string, body: unknown): Promise<TData> {
   return request<TData>("POST", path, body);
+}
+
+/** `GET` carrying the customer's bearer token. */
+export function authGet<TData>(
+  path: string,
+  params?: Record<string, string | number | undefined>
+): Promise<TData> {
+  return request<TData>("GET", withQuery(path, params), undefined, { auth: true });
+}
+
+/** `POST` carrying the customer's bearer token. */
+export function authPost<TData>(path: string, body?: unknown): Promise<TData> {
+  return request<TData>("POST", path, body, { auth: true });
+}
+
+/** `PATCH` carrying the customer's bearer token. */
+export function authPatch<TData>(path: string, body?: unknown): Promise<TData> {
+  return request<TData>("PATCH", path, body, { auth: true });
 }
