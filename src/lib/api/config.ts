@@ -19,6 +19,40 @@ export const API_BASE_URL = (
 ).replace(/\/+$/, "");
 
 /**
+ * Extra headers required by the host the API is served from, not by the API.
+ *
+ * A free ngrok tunnel answers every browser-looking **GET** with its own HTML
+ * interstitial (`ERR_NGROK_6024`) instead of proxying it. That page carries no
+ * `Access-Control-Allow-Origin`, so the browser reports a CORS failure and the
+ * backend's own — correct — CORS configuration is never reached.
+ *
+ * Only GET is intercepted: POST/PATCH/DELETE and the `OPTIONS` preflight all
+ * pass through untouched, because only a GET can be the navigation the warning
+ * page is written for. That asymmetry is what makes this so easy to
+ * misdiagnose — the admin panel signs in fine (a POST) and then fails on every
+ * list it loads, so the API looks reachable when it is not.
+ *
+ * `ngrok-skip-browser-warning` (any value) opts out of the interstitial.
+ *
+ * Scoped to ngrok hostnames so it costs nothing elsewhere: a custom header
+ * makes an otherwise-simple `GET` preflight, and that round trip should not be
+ * paid on a normal deployment.
+ */
+export const HOST_HEADERS: Readonly<Record<string, string>> =
+  /\.ngrok(-free)?\.(dev|app|io)$/.test(hostOf(API_BASE_URL))
+    ? { "ngrok-skip-browser-warning": "true" }
+    : {};
+
+/** Hostname of a URL, or `""` if it is relative or unparseable. */
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return "";
+  }
+}
+
+/**
  * The API rejects any request body larger than 100 KB with a 400. We check
  * client-side first so the user gets a useful message instead of a generic
  * validation error.

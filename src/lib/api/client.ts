@@ -13,6 +13,7 @@
 
 import {
   API_BASE_URL,
+  HOST_HEADERS,
   MAX_REQUEST_BYTES,
   REQUEST_TIMEOUT_MS,
 } from "./config";
@@ -123,6 +124,9 @@ export async function request<TData>(
       // deliberately left at the default ("same-origin") — never "include".
       headers: {
         ...(serialised ? { "Content-Type": "application/json" } : {}),
+        // Demanded by the tunnel in front of the API, not by the API. Empty on
+        // a normal deployment — see HOST_HEADERS.
+        ...HOST_HEADERS,
         // Only on the endpoints that need it, so a public read never leaks a
         // token to a cache or a log.
         ...(auth && authToken ? { Authorization: `Bearer ${authToken}` } : {}),
